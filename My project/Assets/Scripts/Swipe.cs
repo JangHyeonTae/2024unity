@@ -57,7 +57,6 @@ public class Swipe : MonoBehaviour
             if (deltaY > 0) // Up swipe
             {
                 playerMovement.Jump();
-                playerMovement.jumpActive = false;
             }
         }
     }
