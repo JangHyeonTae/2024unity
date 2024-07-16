@@ -11,6 +11,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] Vector3 playerVelocity;
     [SerializeField] float gravityValue = -10f;
     [SerializeField] float groundDistance = 0.2f;
+    [SerializeField] float jumpHeight = 10f;
     public Vector3 MoveVector { set; get; }
 
     public VirtualJoystick joystick;
@@ -25,9 +26,14 @@ public class PlayerMovement : MonoBehaviour
 
 
     Animator animator;
-    float animator_Speed = 0f;
     private bool hasAnimator;
 
+    //private int _animIDSpeed;
+    //private int _animIDJump;
+
+    [SerializeField] float SpeedChageRate = 10f;
+
+    public bool jumpbool;
 
     void Start()
     {
@@ -36,30 +42,47 @@ public class PlayerMovement : MonoBehaviour
         animator = GetComponent<Animator>();    
         transGroundCheckPoint = transform;
         groundMask = (1 << 6 ) | (1 << 7);
+        if (hasAnimator)
+        {
+            animator.applyRootMotion = false;
+        }
 
     }
 
+   //private void AssignAnimationIDs()
+   //{
+   //    _animIDSpeed = Animator.StringToHash("Speed");
+   //    _animIDJump = Animator.StringToHash("Jump");
+   //}
 
     void Update()
     {
+
         MovePad();
 
         GroundedCheck();
 
-        playerVelocity.y = gravityValue * Time.deltaTime;
+        //if (isGrounded && playerVelocity.y < 0)
+        //{
+        //    playerVelocity.y = 0f;
+        //
+        //}
+        //else
+        //{
+        //    playerVelocity.y = gravityValue * Time.deltaTime;
+        //}
 
-        charcon.Move(playerVelocity * Time.deltaTime);
+        Vector3 movement = MoveVector * moveSpeed * Time.deltaTime;
+
+        charcon.Move(playerVelocity * Time.deltaTime + movement);
+
         
     }
 
     void GroundedCheck()
     {
         isGrounded = Physics.Raycast(transGroundCheckPoint.position, Vector3.down, groundDistance, groundMask);
-        if (isGrounded && playerVelocity.y < 0)
-        {
-            playerVelocity.y = 0f;
-
-        }
+        
     }
 
     public void MovePad()
@@ -73,33 +96,37 @@ public class PlayerMovement : MonoBehaviour
         Vector3 dirMove = transform.forward * dir.z + transform.right * dir.x;
         
         MoveVector = dirMove;
-        animator_Speed = MoveVector.x;
-        
-        
-        Vector3 movement = MoveVector * moveSpeed * Time.deltaTime;
-        charcon.Move(movement);
-        
-        transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y + dir.x, transform.rotation.eulerAngles.z);
-        //camTrans.rotation = Quaternion.Euler(camTrans.rotation.eulerAngles + new Vector3(0, dir.x, 0f));
+        float animatorSpeed = MoveVector.magnitude;
 
-        //아직 사용안함 blendtree사용해서 조절 *mathf.lerp사용으로 speed,idle,motionspeed 조절
-        if(hasAnimator)
+        if (dir != Vector3.zero)
         {
-            animator.SetFloat("Speed", animator_Speed);
-            //animator.SetFloat("MotionSpeed", 1f);
+            transform.rotation = Quaternion.Euler(transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y + dir.x, transform.rotation.eulerAngles.z);
+        }
+
+
+        if (hasAnimator)
+        {
+            //animator.SetFloat(_animIDSpeed, animatorSpeed);
+            animator.SetFloat("Speed", animatorSpeed);
         }
     }
     public void Jump()
     {
-        //playerVelocity.y = Mathf.Sqrt(jumpHeight * -2.0f * gravityValue);
 
-        //charcon.Move(playerVelocity * Time.deltaTime);
+        playerVelocity.y = Mathf.Sqrt(jumpHeight * -2.0f* gravityValue);
+       
+
+        
+        //if (isGrounded)
+        //{
+        //    playerVelocity.y = Mathf.Sqrt(jumpHeight * -2.0f * gravityValue);
+        //}   
 
         if (hasAnimator)
         {
-            //animator.SetBool("Jump", true);
             animator.SetTrigger("Jump");
         }
 
     }
+
 }
